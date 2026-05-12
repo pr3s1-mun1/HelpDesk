@@ -1,0 +1,1142 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %} 
+<div class="d-flex justify-content-between align-items-center">
+    <h5 class="title-secondary mb-0">Detalles de orden</h5>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    {% if tipo_usuario == "A" %}
+        <div class="container-fluid py-3 d-flex justify-content-between">
+            
+            {% if orden_anterior %}
+                <a class="btn btn-outline-primary" href="{% url 'detalle_orden' orden_anterior.orden %}">
+                    Anterior
+                </a>
+            {% else %}
+                <span></span>
+            {% endif %}
+
+            {% if orden_siguiente %}
+                <a class="btn btn-outline-primary" href="{% url 'detalle_orden' orden_siguiente.orden %}">
+                    Siguiente
+                </a>
+            {% endif %}
+
+        </div>
+    {% endif %}
+    <div class="row">
+        <!-- Columna principal -->
+        <div class="col-lg-8">
+            <!-- Tarjeta principal -->
+            <div class="card border-0 shadow-sm mb-4">
+                <!-- HEADER -->
+                <div class="card-header bg-primario text-white d-flex flex-column flex-md-row justify-content-between align-items-md-center py-3">
+                    <div class="mb-2 mb-md-0">
+                        <h2 class="h5 mb-1 fw-bold">
+                            <i class="bi bi-file-text me-2"></i>Detalle de Orden #{{ orden.orden }}
+                        </h2>
+                        <small class="opacity-75">
+                            <i class="bi bi-calendar me-1"></i>{{ orden.fecha_captura|date:"d/m/Y H:i" }}
+                        </small>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <!-- Volver -->
+                        <a href="javascript:void(0);"
+                        onclick="document.referrer ? history.back() : window.location.href='{% url 'lista_ordenes' %}'"
+                        class="btn btn-light text-dark btn-sm">
+                            <i class="bi bi-arrow-left me-1"></i> Volver
+                        </a>
+
+                        {% if tipo_usuario == "A" %}
+                            <!-- Editar -->
+                            <a href="{% url 'editar_orden' orden.orden %}"
+                            class="btn btn-outline-light btn-sm">
+                                <i class="bi bi-pencil me-1"></i> Editar
+                            </a>
+                        {% endif %}
+
+                        <!-- Imprimir -->
+                        <a href="{% url 'imprimir_orden' orden.orden %}"
+                        target="_blank"
+                        class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-printer me-1"></i> Imprimir
+                        </a>
+                        
+                        <button type="button"
+                            class="btn btn-sm btn-outline-light btn-procesar-orden"
+                            data-bs-toggle="modal"
+                            data-bs-target="#procesarOrdenModal"
+                            data-orden-id="{{ orden.orden }}"
+                            title="Trabajar orden">
+                            <i class="bi bi-arrow-up-right-square"></i> Procesar
+                        </button>
+
+                        <!-- Reasignar -->
+                        {% if tipo_usuario == "A" and o.get_estatus_display != "Terminada" and o.get_estatus_display != "Cancelada" %}
+                            <button type="button"
+                                class="btn btn-outline-light btn-success btn-sm btn-reasignar-orden"
+                                data-bs-toggle="modal"
+                                data-bs-target="#reasignarOrdenModal"
+                                data-orden-id="{{ orden.orden }}"
+                                title="Reasignar orden">
+                                <i class="bi bi-arrow-repeat me-1"></i> Reasignar
+                            </button>
+                        {% endif %}
+                    </div>
+
+                </div>
+
+                <!-- BODY -->
+                <div class="card-body p-0 p-md-4">
+                    <!-- Estado y prioridad -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <span class="fw-bold me-3">Oficio:</span>
+                            <span class="badge bg-primario rounded-pill px-3 py-2">
+                                <i class="bi bi-exclamation-circle me-1"></i>{{ orden.oficio }}
+                            </span>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <span class="fw-bold me-3">Estatus:</span>
+                                {% if orden.estatus == 'A' %}
+                                    <span class="badge bg-primary rounded-pill px-3 py-2">
+                                        <i class="bi bi-person-check me-1"></i>Asignada
+                                    </span>
+                                {% elif orden.estatus == 'E' %}
+                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+                                        <i class="bi bi-hourglass-split me-1"></i>En Proceso
+                                    </span>
+                                {% elif orden.estatus == 'T' %}
+                                    <span class="badge bg-success rounded-pill px-3 py-2">
+                                        <i class="bi bi-check-circle me-1"></i>Terminada
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary rounded-pill px-3 py-2">
+                                        <i class="bi bi-x-circle me-1"></i>Cancelada
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <span class="fw-bold me-3">Prioridad:</span>
+                                <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+                                    <i class="bi bi-exclamation-circle me-1"></i>{{ orden.get_prioridad_display }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <span class="fw-bold me-3">Vence:</span>
+                                {% if orden.fecha_vencimiento %}
+                                    <span class="badge bg-danger rounded-pill px-3 py-2">
+                                        <i class="bi bi-calendar-event me-1"></i>{{ orden.fecha_vencimiento|date:"d/m/Y H:i" }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary rounded-pill px-3 py-2">
+                                        <i class="bi bi-calendar-x me-1"></i>Sin fecha
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Grid de información -->
+                    <div class="row g-4">
+                        <!-- Información de solicitud -->
+                        <div class="col-md-6">
+                            <div class="card h-100 border">
+                                <div class="card-header bg-light py-2">
+                                    <h6 class="mb-0 fw-bold texto-primario">
+                                        <i class="bi bi-person-badge me-2"></i>Solicitante
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <dl class="row mb-0">
+                                        <dt class="col-sm-5 text-muted">Usuario:</dt>
+                                        <dd class="col-sm-7 fw-semibold">{{ orden.solicitantes.first.usuario_solicita }}</dd>
+                                        
+                                        <dt class="col-sm-5 text-muted">Nombre:</dt>
+                                        <dd class="col-sm-7">{{ orden.solicitantes.first.nombre_solicitante|default:"-" }}</dd>
+                                        
+                                        <dt class="col-sm-5 text-muted">Dependencia:</dt>
+                                        <dd class="col-sm-7">{{ orden.solicitantes.first.dependencia_solicitante|default:"Sin oficio" }}</dd>
+
+                                        <dt class="col-sm-5 text-muted">Puesto:</dt>
+                                        <dd class="col-sm-7">{{ orden.solicitantes.first.puesto_solicitante }}</dd>
+                                        
+                                        <dt class="col-sm-5 text-muted">Contacto:</dt>
+                                        <dd class="col-sm-7">
+                                            <div class="small">{{ orden.solicitantes.first.correo_solicitante|default:"-" }}</div>
+                                            <div class="small">Ext: {{ orden.solicitantes.first.telefono_solicitante|default:"-" }}</div>
+                                        </dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Información de beneficiado -->
+                        <div class="col-md-6">
+                            <div class="card h-100 border">
+                                <div class="card-header bg-light py-2">
+                                    <h6 class="mb-0 fw-bold texto-primario">
+                                        <i class="bi bi-person-check me-2"></i>Beneficiado
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <dl class="row mb-0">
+                                        <dt class="col-sm-5 text-muted">Usuario:</dt>
+                                        <dd class="col-sm-7 fw-semibold">{{ orden.solicitantes.first.usuario_beneficiado }}</dd>
+                                        
+                                        <dt class="col-sm-5 text-muted">Nombre:</dt>
+                                        <dd class="col-sm-7">{{ orden.solicitantes.first.nombre_beneficiado|default:"-" }}</dd>
+                                        
+                                        <dt class="col-sm-5 text-muted">Dependencia:</dt>
+                                        <dd class="col-sm-7">{{ orden.solicitantes.first.dependencia_beneficiado|default:"-" }}</dd>
+
+                                        <dt class="col-sm-5 text-muted">Puesto:</dt>
+                                        <dd class="col-sm-7">{{ orden.solicitantes.first.puesto_beneficiado }}</dd>
+                                        
+                                        <dt class="col-sm-5 text-muted">Contacto:</dt>
+                                        <dd class="col-sm-7">
+                                            <div class="small">{{ orden.solicitantes.first.correo_beneficiado|default:"-" }}</div>
+                                            <div class="small">Ext: {{ orden.solicitantes.first.telefono_beneficiado|default:"-" }}</div>
+                                        </dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="col-12">
+                            <div class="card border">
+                                <div class="card-header bg-light py-2">
+                                    <h6 class="mb-0 fw-bold texto-primario">
+                                        <i class="bi bi-card-text me-2"></i>Descripción
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="p-3 rounded" style="background-color: #e9e9e9">
+                                        {{ orden.descripcion|linebreaks }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Solución -->
+                        {% if orden.solucion %}
+                        <div class="col-12">
+                            <div class="card border">
+                                <div class="card-header bg-light py-2">
+                                    <h6 class="mb-0 fw-bold texto-primario">
+                                        <i class="bi bi-check-circle me-2"></i>Solución
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="p-3 rounded" style="background-color: #e9e9e9;">
+                                        {{ orden.solucion|linebreaks }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Clasificación y aplicación -->
+                        <div class="col-md-12">
+                            <div class="card border">
+                                <div class="card-header bg-light py-2">
+                                    <h6 class="mb-0 fw-bold texto-primario">
+                                        <i class="bi bi-tags me-2"></i>Clasificación
+                                    </h6>
+                                </div>
+                                <div class="card-body text-center py-3">
+                                    <span class="badge bg-primario text-white fs-6 px-3 py-2">
+                                        {{ orden.clasificacion }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="card border">
+                                <div class="card-header bg-light py-2">
+                                    <h6 class="mb-0 fw-bold texto-primario">
+                                        <i class="bi bi-display me-2"></i>Aplicación
+                                    </h6>
+                                </div>
+                                <div class="card-body text-center py-3">
+                                    <span class="badge bg-primario text-white fs-6 px-3 py-2">
+                                        {{ orden.aplicacion }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="card border">
+                                <div class="card-header bg-light py-2">
+                                    <h6 class="mb-0 fw-bold texto-primario">
+                                        <i class="bi bi-display me-2"></i>Categoría
+                                    </h6>
+                                </div>
+                                <div class="card-body text-center py-3">
+                                    <span class="badge bg-primario text-white fs-6 px-3 py-2">
+                                        {% if orden.categoria %}
+                                            {{ orden.get_categoria_display|upper }}
+                                        {% else %}
+                                            <span>SIN CATEGORÍA</span>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primario text-white d-flex flex-column flex-md-row justify-content-between align-items-md-center py-3">
+                    <div class="mb-2 mb-md-0">
+                        <h2 class="h5 mb-1 fw-bold">
+                            <i class="fa-solid fa-timeline me-2"></i>Línea del tiempo
+                        </h2>
+                    </div>
+                </div>
+                <div class="container-fluid py-4 disabled">
+                    <!-- Timeline principal de estados -->
+                    <div class="row mb-5">
+                        <div class="col-12">
+                            <div class="timeline-steps">
+                                <!-- Paso 1: Capturada -->
+                                <div class="timeline-step">
+                                    <div class="timeline-content">
+                                        <div class="inner-circle {% if orden.estatus == 'C' or orden.estatus == 'A' or orden.estatus == 'E' or orden.estatus == 'T' %}active{% endif %}">
+                                            <i class="fa-solid fa-check text-white"></i>
+                                        </div>
+
+                                        <p class="h6 mt-3 mb-1 fw-bold">Capturada</p>
+
+                                        {% if orden.fecha_captura %}
+                                            <p class="text-muted small mb-0">{{ orden.fecha_captura|date:"d/m/Y" }}</p>
+                                            <p class="text-muted small">{{ orden.fecha_captura|date:"H:i" }}</p>
+                                        {% else %}
+                                            <p class="text-muted small">Pendiente</p>
+                                        {% endif %}
+
+                                        {% if orden.capturado_por %}
+                                            <span class="badge bg-light text-dark mt-1 small">
+                                                <i class="fa-regular fa-user me-1"></i>
+                                                {{ orden.capturado_por.get_full_name|default:orden.capturado_por.username }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Paso 2: Asignada -->
+                                <div class="timeline-step">
+                                    <div class="timeline-content">
+                                        <div class="inner-circle {% if orden.estatus == 'A' or orden.estatus == 'E' or orden.estatus == 'T' %}active{% else %}pending{% endif %}">
+                                            {% if orden.estatus == 'A' or orden.estatus == 'E' or orden.estatus == 'T' %}
+                                                <i class="fa-solid fa-user-check text-white"></i>
+                                            {% else %}
+                                                <i class="fa-regular fa-clock"></i>
+                                            {% endif %}
+                                        </div>
+
+                                        <p class="h6 mt-3 mb-1 fw-bold">Asignada</p>
+
+                                        {% if orden.estatus == 'A' or orden.estatus == 'E' or orden.estatus == 'T' %}
+                                            {% if orden.fecha_asignacion %}
+                                                <p class="text-muted small mb-0">{{ orden.fecha_asignacion|date:"d/m/Y" }}</p>
+                                                <p class="text-muted small">{{ orden.fecha_asignacion|date:"H:i" }}</p>
+                                            {% endif %}
+                                        {% else %}
+                                            <p class="text-muted small">Pendiente</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Paso 3: En Proceso -->
+                                <div class="timeline-step">
+                                    <div class="timeline-content">
+                                        <div class="inner-circle {% if orden.estatus == 'E' or orden.estatus == 'T' %}active{% else %}pending{% endif %}">
+                                            {% if orden.estatus == 'E' or orden.estatus == 'T' %}
+                                                <i class="fa-solid fa-play text-white"></i>
+                                            {% else %}
+                                                <i class="fa-regular fa-hourglass-half"></i>
+                                            {% endif %}
+                                        </div>
+
+                                        <p class="h6 mt-3 mb-1 fw-bold">En Proceso</p>
+
+                                        {% if orden.estatus == 'E' or orden.estatus == 'T' %}
+                                            {% if orden.fecha_inicio %}
+                                                <p class="text-muted small mb-0">{{ orden.fecha_inicio|date:"d/m/Y" }}</p>
+                                                <p class="text-muted small">{{ orden.fecha_inicio|date:"H:i" }}</p>
+                                            {% endif %}
+                                        {% else %}
+                                            <p class="text-muted small">Pendiente</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Paso 4: Terminada -->
+                                <div class="timeline-step">
+                                    <div class="timeline-content">
+                                        <div class="inner-circle {% if orden.estatus == 'T' %}active{% else %}pending{% endif %}">
+                                            {% if orden.estatus == 'T' %}
+                                                <i class="fa-solid fa-check text-white"></i>
+                                            {% else %}
+                                                <i class="fa-regular fa-circle-check"></i>
+                                            {% endif %}
+                                        </div>
+
+                                        <p class="h6 mt-3 mb-1 fw-bold">Terminada</p>
+
+                                        {% if orden.estatus == 'T' %}
+                                            {% if orden.fecha_termino %}
+                                                <p class="text-muted small mb-0">{{ orden.fecha_termino|date:"d/m/Y" }}</p>
+                                                <p class="text-muted small">{{ orden.fecha_termino|date:"H:i" }}</p>
+                                            {% endif %}
+                                        {% else %}
+                                            <p class="text-muted small">Pendiente</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timeline horizontal de comentarios -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold mb-0">
+                                    <i class="fa-regular fa-comments me-2"></i>
+                                    Historial de comentarios
+                                    <span class="badge bg-primary ms-2">{{ comentarios_count }}</span>
+                                </h6>
+                            </div>
+
+                            <div class="comments-timeline-horizontal" id="commentsTimeline">
+                                {% if todos_comentarios %}
+                                    {% for item in todos_comentarios %}
+                                        <div class="comment-card" data-type="comentario">
+                                            <div class="comment-time">
+                                                <span class="fw-semibold small me-4">
+                                                    <i class="fa-regular fa-user me-1"></i>
+                                                    {{ item.usuario.get_full_name|default:item.usuario.username }}
+                                                </span>
+                                                <span class="badge bg-primario text-white">
+                                                    <i class="fa-regular fa-clock me-1"></i>{{ item.fecha|date:"d/m/Y H:i" }}
+                                                </span>
+                                            </div>
+                                            
+
+                                            <div class="comment-content">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    
+                                                </div>
+                                                
+                                                <!-- Mostrar el comentario completo con el formato original -->
+                                                <div class="mt-2 p-2 bg-light rounded">
+                                                    <p class="mb-0 small">
+                                                        {{ item.comentario }}
+                                                    </p>
+                                                </div>
+                                                
+                                                {% if item.uxo.etiquetas %}
+                                                    <div class="mt-2">
+                                                        {% for tag in item.uxo.etiquetas.split %}
+                                                            <span class="badge bg-info text-dark me-1">#{{ tag }}</span>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+
+                                        <style>
+                                            .extra-small {
+                                                font-size: 0.7rem;
+                                            }
+                                            
+                                            .comment-time .badge.bg-primary {
+                                                background-color: #0d6efd !important;
+                                            }
+                                            
+                                            /* Para que el texto [fecha] se vea diferente */
+                                            .text-primary {
+                                                color: #0d6efd !important;
+                                                font-weight: 500;
+                                            }
+                                        </style>
+                                {% else %}
+                                    <div class="text-center py-4 w-100">
+                                        <i class="fa-regular fa-comment-dots fa-2x text-muted mb-2"></i>
+                                        <p class="text-muted mb-0">No hay comentarios registrados</p>
+                                        <p class="text-muted small">Los comentarios tienen formato: [2024-01-15 10:30] Comentario</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de seguimiento detallado -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primario text-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-clock-history me-2"></i>Seguimiento detallado de responsables
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-borderless mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Responsable</th>
+                                    <th>Asignado por</th>
+                                    <th>Fecha Asignación</th>
+                                    <th>Estatus</th>
+                                    <th>Inicio</th>
+                                    <th>Término</th>
+                                    <th class="pe-4">Solución / Comentarios</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for u in orden.usuarios_orden.all %}
+                                <tr class="align-middle">
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle-sm me-2" style="width: 32px; height: 32px; background-color: #0d6efd; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                                                {{ u.realiza.get_initials|default:u.realiza.username|first|upper }}
+                                            </div>
+                                            <div>
+                                                <strong>{{ u.realiza.get_full_name|default:u.realiza.username }}</strong>
+                                                <div class="text-muted small">{{ u.realiza.email|default:"" }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <span class="fw-semibold">{{ u.asigna.get_full_name|default:u.asigna.username }}</span>
+                                            <div class="text-muted small">{{ u.fecha_asigna|date:"d/m/Y H:i" }}</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark p-2">
+                                            <i class="fa-regular fa-calendar me-1"></i>{{ u.fecha_asigna|date:"d/m/Y" }}
+                                            <br><small>{{ u.fecha_asigna|date:"H:i" }}</small>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if u.estatus == 'T' %}bg-success
+                                            {% elif u.estatus == 'E' %}bg-warning text-dark
+                                            {% elif u.estatus == 'A' %}bg-primary
+                                            {% elif u.estatus == 'C' %}bg-danger
+                                            {% else %}bg-secondary{% endif %} p-2">
+                                            <i class="fa-regular 
+                                                {% if u.estatus == 'T' %}fa-circle-check
+                                                {% elif u.estatus == 'E' %}fa-hourglass-half
+                                                {% elif u.estatus == 'A' %}fa-clock
+                                                {% elif u.estatus == 'C' %}fa-circle-xmark
+                                                {% else %}fa-question{% endif %} me-1"></i>
+                                            {{ u.get_estatus_display|default:u.estatus }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if u.inicia %}
+                                        <div class="text-success">
+                                            <i class="bi bi-play-circle me-1"></i>
+                                            {{ u.inicia|date:"d/m/Y" }}
+                                            <br><small>{{ u.inicia|date:"H:i" }}</small>
+                                        </div>
+                                        {% else %}
+                                        <span class="text-muted">
+                                            <i class="fa-regular fa-minus me-1"></i>No iniciado
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if u.termina %}
+                                        <div class="text-success">
+                                            <i class="bi bi-flag-fill me-1"></i>
+                                            {{ u.termina|date:"d/m/Y" }}
+                                            <br><small>{{ u.termina|date:"H:i" }}</small>
+                                        </div>
+                                        {% else %}
+                                        <span class="text-muted">
+                                            <i class="fa-regular fa-minus me-1"></i>Pendiente
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="pe-4" style="max-width: 300px;">
+                                        {% if u.solucion %}
+                                        <div class="p-2 rounded bg-light border-start border-success border-4">
+                                            <span class="badge bg-success mb-1">Solución</span>
+                                            <p class="mb-0 small">{{ u.solucion|linebreaksbr|truncatechars:150 }}</p>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if u.etiquetas %}
+                                        <div class="mt-2">
+                                            {% for tag in u.etiquetas.split %}
+                                                <span class="badge bg-secondary me-1">#{{ tag }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if u.causa %}
+                                        <div class="mt-1">
+                                            <small class="text-muted">
+                                                <i class="fa-regular fa-circle-exclamation me-1"></i>{{ u.causa }}
+                                            </small>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-5 text-muted">
+                                        <i class="bi bi-info-circle me-2" style="font-size: 2rem;"></i>
+                                        <br>
+                                        <p class="mt-2">No hay responsables asignados a esta orden</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Columna lateral -->
+        <div class="col-lg-4 mt-4 mt-lg-0">
+            <!-- Archivos adjuntos -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primario text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="bi bi-paperclip me-2"></i>Archivos Adjuntos
+                        </h5>
+                        <span class="badge bg-light text-dark" id="archivos-count">
+                            {{ archivos_count|default:0 }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    {% if archivos_validos %}
+                    <div class="list-group list-group-flush">
+
+                        {% for archivo in archivos_validos %}
+                        <div class="list-group-item px-0 py-3 border-bottom">
+                            <div class="d-flex align-items-start">
+
+                                <!-- Icono según extensión -->
+                                <div class="flex-shrink-0 me-3">
+                                    {% with nombre=archivo.archivo.name|lower %}
+                                        {% if nombre|slice:"-4:" == ".pdf" %}
+                                            <i class="bi bi-file-pdf fs-3 text-danger"></i>
+                                        {% elif nombre|slice:"-4:" == ".doc" or nombre|slice:"-5:" == ".docx" %}
+                                            <i class="bi bi-file-word fs-3 text-primary"></i>
+                                        {% elif nombre|slice:"-4:" == ".xls" or nombre|slice:"-5:" == ".xlsx" %}
+                                            <i class="bi bi-file-excel fs-3 text-success"></i>
+                                        {% elif nombre|slice:"-4:" == ".jpg" or nombre|slice:"-5:" == ".jpeg" or nombre|slice:"-4:" == ".png" or nombre|slice:"-4:" == ".gif" %}
+                                            <i class="bi bi-file-image fs-3 text-info"></i>
+                                        {% elif nombre|slice:"-4:" == ".zip" or nombre|slice:"-4:" == ".rar" %}
+                                            <i class="bi bi-file-zip fs-3 text-warning"></i>
+                                        {% else %}
+                                            <i class="bi bi-file-earmark fs-3 text-secondary"></i>
+                                        {% endif %}
+                                    {% endwith %}
+                                </div>
+
+                                <!-- Información -->
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <h6 class="mb-0 fw-bold text-truncate" style="max-width: 200px;">
+                                            {{ archivo.nombre|default:archivo.archivo.name }}
+                                        </h6>
+                                        <span class="badge bg-light text-dark small">
+                                            {{ archivo.archivo.size|filesizeformat }}
+                                        </span>
+                                    </div>
+
+                                    {% if archivo.descripcion %}
+                                    <p class="small mb-2">{{ archivo.descripcion }}</p>
+                                    {% endif %}
+
+                                    <!-- Acciones -->
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ archivo.archivo.url }}"
+                                        download
+                                        class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-download me-1"></i>Descargar
+                                        </a>
+                                        <a href="{{ archivo.archivo.url }}"
+                                        target="_blank"
+                                        class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-eye me-1"></i>Ver
+                                        </a>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Estadísticas -->
+                    <div class="mt-3 pt-3 border-top">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <small class="text-muted">Total archivos</small>
+                                <p class="h5 mb-0">{{ archivos_count }}</p>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Tamaño total</small>
+                                <p class="h5 mb-0">
+                                    {{ total_bytes|filesizeformat }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% else %}
+                    <!-- Sin archivos -->
+                    <div class="text-center py-4">
+                        <i class="bi bi-paperclip display-5 text-muted mb-3"></i>
+                        <p class="text-muted mb-0">No hay archivos adjuntos</p>
+
+                        {% if tipo_usuario == "A" %}
+                        <a href="{% url 'editar_orden' orden.orden %}"
+                        class="btn btn-sm btn-outline-primary mt-2">
+                            <i class="bi bi-plus-circle me-1"></i>Agregar archivos
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+
+            <!-- Equipos asociados -->
+            {% if orden.equipos.all %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primario text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="bi bi-laptop me-2"></i>Equipos Asociados
+                        </h5>
+                        <span class="badge bg-light text-dark">{{ orden.equipos.count }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="accordionEquipos">
+                        {% for equipo in orden.equipos.all %}
+                        <div class="accordion-item border mb-3">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#collapseEquipo{{ forloop.counter }}">
+                                    <div class="d-flex justify-content-between w-100 me-2">
+                                        <span class="fw-bold">{{ equipo.equipo }}</span>
+                                        {% if equipo.entregado_foraneo == 1 %}
+                                        <span class="badge bg-success">
+                                            Entregado
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseEquipo{{ forloop.counter }}" class="accordion-collapse collapse" 
+                                 data-bs-parent="#accordionEquipos">
+                                <div class="accordion-body">
+                                    <dl class="row mb-2">
+                                        <dt class="col-5 text-muted">Patrimonio:</dt>
+                                        <dd class="col-7">{{ equipo.patrimonio|default:"-" }}</dd>
+                                        
+                                        <dt class="col-5 text-muted">Serie:</dt>
+                                        <dd class="col-7">{{ equipo.serie|default:"-" }}</dd>
+                                        
+                                        <dt class="col-5 text-muted">Marca:</dt>
+                                        <dd class="col-7">{{ equipo.marca|default:"-" }}</dd>
+                                        
+                                        <dt class="col-5 text-muted">Color:</dt>
+                                        <dd class="col-7">{{ equipo.color|default:"-" }}</dd>
+
+                                        <dt class="col-5 text-muted">Entregada:</dt>
+                                        <dd class="col-7">
+                                            {% if equipo.entregado_foraneo %}
+                                                <span class="badge bg-warning text-dark">
+                                                    Sí
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">
+                                                    No
+                                                </span>
+                                            {% endif %}
+                                        </dd>
+
+                                    </dl>
+                                    
+                                    {% if equipo.descripcion %}
+                                    <div class="mt-2">
+                                        <label class="text-muted small">Descripción:</label>
+                                        <p class="mb-1">{{ equipo.descripcion }}</p>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if equipo.observaciones %}
+                                    <div class="mt-2">
+                                        <label class="text-muted small">Observaciones:</label>
+                                        <p class="mb-1">{{ equipo.observaciones }}</p>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div class="mt-3 pt-2 border-top">
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <label class="text-muted small">Resguardante:</label>
+                                                <p class="mb-0 fw-semibold">{{ equipo.nombre_resguardante }}</p>
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="text-muted small">Área:</label>
+                                                <p class="mb-0">{{ equipo.area_resguardante }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {% if not equipo.entregado_foraneo %}
+                                    <div class="d-flex justify-content-end mt-3 pt-2 border-top">
+                                        <form method="post" action="{% url 'entregar_equipo' equipo.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-success btn-sm">
+                                                <i class="bi bi-check-circle me-1"></i> Entregar
+                                            </button>
+                                        </form>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Calificación -->
+            {% if estrellas and comentario.comentario %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-warning text-dark py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-star me-2"></i>Calificación del Usuario
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <!-- Estrellas -->
+                    <div class="mb-3">
+                        <div>
+                            <span class="h4 fw-bold me-2">{{ estrellas }}/5</span>
+                            {% if estrellas == "★★★★★" %}
+                                <span class="badge bg-success text-dark">Excelente</span>
+                            {% elif estrellas == "★★★★☆" or estrellas == "★★★★" %}
+                                <span class="badge bg-info">Bueno</span>
+                            {% elif estrellas == "★★★☆☆" or estrellas == "★★★" %}
+                                <span class="badge bg-light text-dark">Regular</span>
+                            {% elif estrellas == "★★☆☆☆" or estrellas == "★★" %}
+                                <span class="badge bg-warning">Aceptable</span>
+                            {% elif estrellas == "★☆☆☆☆" or estrellas == "★" %}
+                                <span class="badge bg-danger">Deficiente</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ estrellas }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Comentario -->
+                    <div class="border rounded p-3 bg-light">
+                        <i class="bi bi-quote text-muted float-start me-2"></i>
+                        <p class="mb-0 text-muted fst-italic">
+                            "{{ comentario.comentario }}"
+                        </p>
+                        <i class="bi bi-quote text-muted float-end ms-2" style="transform: rotate(180deg);"></i>
+                    </div>
+                    
+                    {% if orden.fecha_terminado %}
+                    <div class="mt-3 text-muted small">
+                        <i class="bi bi-calendar-check me-1"></i>
+                        Terminado: {{ orden.fecha_terminado|date:"d/m/Y H:i" }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="reasignarOrdenModal" tabindex="-1" aria-labelledby="reasignarOrdenModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+        
+        <!-- Header -->
+        <div class="modal-header">
+            <h5 class="modal-title" id="reasignarOrdenModalLabel">Reasignar Orden</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        
+        <!-- Body -->
+        <div class="modal-body" id="modal-reasignar-contenido">
+            <div class="text-center text-muted py-5">
+            <div class="spinner-border text-primary mb-3"></div>
+            <p>Cargando datos...</p>
+            </div>
+        </div>
+        
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="procesarOrdenModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable"> 
+            <div class="modal-content">
+                <div class="modal-header bg-primario text-white">
+                    <h5 class="modal-title">Procesar orden</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modal-procesar-contenido">
+                    <div class="text-center text-muted py-5">
+                        <div class="spinner-border text-primary mb-3"></div>
+                        <p>Cargando datos...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div>
+
+<script defer src="{% static 'js/asignar_detalles.js' %}"></script>
+
+<style>
+    /* Estilos adicionales para los archivos adjuntos */
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+    .text-truncate {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+</style>
+
+<!-- CSS para estilos adicionales -->
+<style>
+    .timeline-steps {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        padding: 20px 0;
+    }
+    
+    .timeline-steps::before {
+        content: '';
+        position: absolute;
+        top: 35px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, 
+            rgba(13, 110, 253, 0.2) 0%, 
+            rgba(13, 110, 253, 0.5) 50%, 
+            rgba(13, 110, 253, 0.2) 100%);
+        z-index: 1;
+    }
+    
+    .timeline-step {
+        flex: 1;
+        text-align: center;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .timeline-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .inner-circle {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: white;
+        border: 3px solid #dee2e6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: #6c757d;
+        transition: all 0.3s ease;
+    }
+    
+    .inner-circle.active {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        color: white;
+        box-shadow: 0 0 0 5px rgba(13, 110, 253, 0.2);
+        transform: scale(1.1);
+    }
+    
+    .inner-circle.pending {
+        background-color: #f8f9fa;
+        border-color: #ffc107;
+        color: #ffc107;
+    }
+    
+    /* Timeline horizontal de comentarios */
+    .comments-timeline-horizontal {
+        display: flex;
+        overflow-x: auto;
+        padding: 20px 0;
+        gap: 20px;
+        scrollbar-width: thin;
+        scrollbar-color: #0d6efd #f8f9fa;
+    }
+    
+    .comments-timeline-horizontal::-webkit-scrollbar {
+        height: 8px;
+    }
+    
+    .comments-timeline-horizontal::-webkit-scrollbar-track {
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+    
+    .comments-timeline-horizontal::-webkit-scrollbar-thumb {
+        background: #0d6efd;
+        border-radius: 10px;
+    }
+    
+    .comment-card {
+        min-width: 300px;
+        max-width: 350px;
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 15px;
+        position: relative;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .comment-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    .comment-card::before {
+        content: '';
+        position: absolute;
+        top: -10px;
+        left: 30px;
+        width: 20px;
+        height: 20px;
+        background: white;
+        border-top: 1px solid #e9ecef;
+        border-left: 1px solid #e9ecef;
+        transform: rotate(45deg);
+    }
+    
+    .comment-time {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 10px;
+    }
+    
+    .comment-avatar {
+        position: absolute;
+        top: -15px;
+        left: 20px;
+        z-index: 3;
+    }
+    
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        border: 3px solid white;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .comment-content {
+        margin-top: 20px;
+        padding-left: 10px;
+    }
+    
+    .text-white-50 {
+        color: rgba(255, 255, 255, 0.7) !important;
+    }
+    
+    .table td {
+        vertical-align: middle;
+        padding: 1rem 0.5rem;
+    }
+    
+    .bg-light.rounded {
+        background-color: #f8f9fa !important;
+    }
+    
+    .border-start.border-success {
+        border-left-width: 4px !important;
+    }
+    
+    .border-start.border-info {
+        border-left-width: 4px !important;
+    }
+    
+    @media (max-width: 768px) {
+        .timeline-steps {
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .timeline-steps::before {
+            display: none;
+        }
+        
+        .comment-card {
+            min-width: 250px;
+        }
+        
+        .table-responsive {
+            font-size: 0.9rem;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-scroll al último comentario
+        const timeline = document.getElementById('commentsTimeline');
+        if (timeline && timeline.children.length > 0) {
+            timeline.scrollLeft = timeline.scrollWidth;
+        }
+    });
+</script>
+{% endblock %}
