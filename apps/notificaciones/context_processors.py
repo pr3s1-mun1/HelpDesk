@@ -36,3 +36,14 @@ def tipo_usuario(request):
         tipo = "T"
 
     return {"tipo_usuario": tipo}
+
+def permisos_usuario(request):
+    if not request.user.is_authenticated:
+        return {"permisos_usuario": None}
+    try:
+        extra = ExtraUsuarios.objects.get(usuario_id=request.user)
+        permisos = extra.permisos
+    except ExtraUsuarios.DoesNotExist:
+        permisos = "0"
+
+    return {"permisos_usuario": permisos}

@@ -8,7 +8,7 @@
 
 {% block content %}
 <div class="container-fluid py-3">
-    {% if tipo_usuario == "A" %}
+    {% if tipo_usuario == "A" or permisos_usuario == "2" %}
         <div class="container-fluid py-3 d-flex justify-content-between">
             
             {% if orden_anterior %}
@@ -50,7 +50,7 @@
                             <i class="bi bi-arrow-left me-1"></i> Volver
                         </a>
 
-                        {% if tipo_usuario == "A" %}
+                        {% if tipo_usuario == "A" or permisos_usuario == "2" %}
                             <!-- Editar -->
                             <a href="{% url 'editar_orden' orden.orden %}"
                             class="btn btn-outline-light btn-sm">
@@ -75,7 +75,7 @@
                         </button>
 
                         <!-- Reasignar -->
-                        {% if tipo_usuario == "A" and o.get_estatus_display != "Terminada" and o.get_estatus_display != "Cancelada" %}
+                        {% if tipo_usuario == "A" or permisos_usuario == "2" and orden.get_estatus_display != "Terminada" and orden.get_estatus_display != "Cancelada" %}
                             <button type="button"
                                 class="btn btn-outline-light btn-success btn-sm btn-reasignar-orden"
                                 data-bs-toggle="modal"

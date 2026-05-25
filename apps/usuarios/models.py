@@ -14,6 +14,12 @@ ESTATUS_USUARIO = [
     ('B', 'Baja')
 ]
 
+USER_PERMISOS = [
+    ('0', 'Sin permisos'),
+    ('1', 'Permisos intermedios'),
+    ('2', 'Permisos totales'),
+]
+
 class ExtraUsuarios(models.Model):
     usuario = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name="extra")
     empleado = models.IntegerField(unique=True)
@@ -28,6 +34,7 @@ class ExtraUsuarios(models.Model):
     fecha_nacimiento = models.DateField(null=True, blank=True)
     departamento = models.ForeignKey('Departamentos', on_delete=models.CASCADE, null=True, blank=True)
     cambio_contrasena = models.BooleanField(default=0)
+    permisos = models.CharField(max_length=1, blank=True, null=True)
 
 class Departamentos(models.Model):
     nombre = models.CharField(max_length=100)
