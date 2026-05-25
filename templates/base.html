@@ -64,9 +64,11 @@
                     </a>
                     <div class="submenu collapse" id="ordenesSubmenu">
                         <a href="{% url 'crear_orden' %}" class="submenu-link">Nueva</a>
-                        {% if tipo_usuario == "A" %} 
+                        {% if tipo_usuario == "A" %}
                             <a href="{% url 'lista_ordenes' %}" class="submenu-link">Gestionar</a> 
-                            <a href="{% url 'duplicar_orden' %}" class="submenu-link">Duplicar</a>                    
+                            <a href="{% url 'duplicar_orden' %}" class="submenu-link">Duplicar</a>
+                        {% elif permisos_usuario == "2" %}
+                            <a href="{% url 'lista_ordenes' %}" class="submenu-link">Gestionar</a>
                         {% endif %}
                         <a href="{% url 'ordenes_lista' %}" class="submenu-link">Mis asignadas</a>
                     </div>

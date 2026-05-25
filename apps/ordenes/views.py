@@ -655,10 +655,10 @@ class EstadoUsuariosView(TemplateView):
                 asignaciones = asignaciones.filter(orden__estatus=estatus_orden)
 
             if fecha_inicio:
-                asignaciones = asignaciones.filter(orden__fecha__date__gte=fecha_inicio)
+                asignaciones = asignaciones.filter(orden__fecha_captura__date__gte=fecha_inicio)
 
             if fecha_fin:
-                asignaciones = asignaciones.filter(orden__fecha__date__lte=fecha_fin)
+                asignaciones = asignaciones.filter(orden__fecha_captura__date__lte=fecha_fin)
 
             pendientes = asignaciones.filter(orden__estatus="A").count()
             iniciadas = asignaciones.filter(orden__estatus="E").count()

@@ -66,13 +66,14 @@ TEMPLATES = [
                 'apps.notificaciones.context_processors.notificaciones_context',
                 'apps.notificaciones.context_processors.soporte_usuarios',
                 'apps.notificaciones.context_processors.tipo_usuario',
+                'apps.notificaciones.context_processors.permisos_usuario',
             ],
         },
     },
 ]
 
 WSGI_APPLICATION = 'helpdesk.wsgi.application'
-BD_TEST = False
+BD_TEST = True
 
 if BD_TEST:
     DATABASES = {

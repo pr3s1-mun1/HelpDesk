@@ -18,12 +18,13 @@ def administrador_required(solo_admin=True):
                 extra = None
 
             if solo_admin:
-                if not extra or extra.tipo != 'A':
-                    messages.warning(
-                        request,
-                        "No tienes permisos para acceder a esta sección."
-                    )
-                    return redirect('inicio')
+                if not extra or extra.permisos not in ['2', '3']:
+                    if not extra or extra.tipo != 'A' :
+                        messages.warning(
+                            request,
+                            "No tienes permisos para acceder a esta sección."
+                        )
+                        return redirect('inicio')
 
             return view_func(request, *args, **kwargs)
 
