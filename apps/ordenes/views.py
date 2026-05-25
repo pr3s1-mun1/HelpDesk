@@ -18,6 +18,8 @@ from django.utils.decorators import method_decorator
 from io import BytesIO
 from django.views.decorators.http import require_POST
 from django.urls import reverse_lazy
+from django.urls import reverse # Michi: Correción de las URLs dinámicas
+
 
 from .models import Orden, UsuariosxOrden
 from .forms import *
@@ -113,9 +115,7 @@ class OrdenCreateTicket(CreateView):
                             "usuario": user.get_full_name() or user.username,
                             "orden_id": orden.orden,
                             "resumen": orden.descripcion,
-                            "url": request.build_absolute_uri(
-                                f"/ordenes/ordenes/"
-                            ),
+                            "url": "https://hlpdesk.gobjuarez.mpio" +reverse('ordenes_lista'),
                         }
                     )
 
@@ -1295,9 +1295,7 @@ def reasignar_orden(request: HttpRequest):
                         "usuario": usuario.get_full_name() or usuario.username,
                         "orden_id": orden.orden,
                         "resumen": orden.descripcion,
-                        "url": request.build_absolute_uri(
-                            f"/ordenes/ordenes/"
-                        ),
+                        "url": "https://hlpdesk.gobjuarez.mpio" + reverse('ordenes_lista'),
                     }
                 )
 
