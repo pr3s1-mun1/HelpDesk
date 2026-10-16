@@ -73,10 +73,11 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'helpdesk.wsgi.application'
-BD_TEST = False
 
-if BD_TEST:
-    DATABASES = {
+AMBIENTE = 'BD_TEST'
+
+BD_ALL = {
+    'BD_TEST': {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': 'helpdesk',
@@ -85,9 +86,8 @@ if BD_TEST:
             'HOST': '10.236.62.93',
             'PORT': '5433',
         }
-    }
-else:
-    DATABASES = {
+    },
+    'DATABASES': {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': 'HelpDesk',
@@ -97,6 +97,12 @@ else:
             'PORT': '5432',
         }
     }
+}
+
+# DATABASES = BD_ALL[AMBIENTE]  if AMBIENTE in BD_ALL.keys() else BD_ALL['PRODUCCION']  --Jose
+DATABASES = BD_ALL.get(AMBIENTE, BD_ALL['BD_TEST'])
+print(f"Base de datos configurada: {DATABASES}")
+
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 

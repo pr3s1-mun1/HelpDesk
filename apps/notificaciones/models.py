@@ -6,7 +6,7 @@ class Notificacion(models.Model):
     tipo = models.CharField(max_length=20, default='info')
     creada = models.DateTimeField(auto_now_add=True)
     leida = models.BooleanField(default=False)
-    orden = models.CharField(blank=True, null=True)
+    orden = models.CharField(max_length=100, blank=True, null=True)
     usuario = models.ForeignKey('auth.User', null=True, blank=True, on_delete=models.CASCADE, related_name='notificaciones')
 
 class TelegramUser(models.Model):

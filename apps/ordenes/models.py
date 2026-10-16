@@ -58,7 +58,7 @@ class Orden(models.Model):
 class OrdenxArchivo(models.Model):
     orden = models.ForeignKey('Orden', on_delete=models.CASCADE, related_name='archivos')
     archivo = models.FileField(upload_to='archivos_ordenes/')
-    descripcion = models.CharField(**vacios)
+    descripcion = models.CharField(max_length=255, **vacios)
 
     def save(self, *args, **kwargs):
         if not self.descripcion:
@@ -75,8 +75,8 @@ class UsuariosxOrden(models.Model):
     termina = models.DateTimeField(**vacios)
     asigna = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='asigna_usuario', **vacios)
     fecha_asigna = models.DateTimeField(auto_now_add=True)
-    estatus_orden = models.CharField(choices=ESTATUS, **vacios)
-    estatus = models.CharField(choices=ESTATUS, **vacios)
+    estatus_orden = models.CharField(choices=ESTATUS, max_length=2, **vacios)
+    estatus = models.CharField(choices=ESTATUS, max_length=2, **vacios)
     causa = models.CharField(max_length=100, **vacios)
     etiquetas = models.CharField(max_length=100, **vacios)
     comentarios = models.TextField(**vacios)
